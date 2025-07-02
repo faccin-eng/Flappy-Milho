@@ -1,0 +1,300 @@
+import 'package:flame/game.dart';
+import 'package:flame/components.dart';
+import 'package:flame/events.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:math' as math;
+
+import 'components/corn_player.dart';
+import 'components/building.dart';
+import 'components/background.dart';
+
+enum GameState { menu, playing, gameOver, paused }
+
+class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDetector {
+  late CornPlayer player;
+  late Background background;
+  late TextComponent scoreText;
+  late TextComponent titleText;
+  late TextComponent instructionText;
+  
+  List<Building> buildings = [];
+  GameState gameState = GameState.menu;
+  int score = 0;
+  double gameSpeed = 120.0; // Pixels por segundo
+  double buildingSpawnTimer = 0;
+  final double buildingSpawnInterval = 2.5; // Segundos entre prédios
+  final double buildingGap = 280.0; // Abertura maior para facilitar
+  
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    
+    // Configurar câmera
+    camera.viewfinder.visibleGameSize = size;
+    
+    // Adicionar componentes
+    background = Background();
+    add(background);
+    
+    player = CornPlayer();
+    add(player);
+    
+    scoreText = TextComponent(
+      text: 'Pontuação: 0',
+      position: Vector2(20, 50),
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          shadows: [
+            Shadow(
+              blurRadius: 4,
+              color: Colors.black,
+              offset: Offset(2, 2),
+            ),
+          ],
+        ),
+      ),
+    );
+    add(scoreText);
+    
+    // Título do menu
+    titleText = TextComponent(
+      text: '🌽 FLAPPY Milho\nEspigão d\'Oeste',
+      position: Vector2(size.x / 2, size.y / 2 - 100),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Color(0xFFFFD700),
+          fontSize: 36,
+          fontWeight: FontWeight.bold,
+          shadows: [
+            Shadow(
+              blurRadius: 6,
+              color: Colors.black,
+              offset: Offset(3, 3),
+            ),
+          ],
+        ),
+      ),
+    );
+    add(titleText);
+
+        instructionText = TextComponent(
+      text: 'Toque para começar!\nToque para voar e evite os prédios',
+      position: Vector2(size.x / 2, size.y / 2 + 50),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          shadows: [
+            Shadow(
+              blurRadius: 4,
+              color: Colors.black,
+              offset: Offset(2, 2),
+            ),
+          ],
+        ),
+      ),
+    );
+    add(instructionText);
+    
+    showMenu();
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    
+    if (gameState == GameState.playing) {
+      updateGame(dt);
+    }
+  }
+  
+  void updateGame(double dt) {
+    // Spawnar prédios
+    buildingSpawnTimer += dt;
+    if (buildingSpawnTimer >= buildingSpawnInterval) {
+      spawnBuilding();
+      buildingSpawnTimer = 0;
+    }
+    
+    // Remover prédios fora da tela
+    buildings.removeWhere((building) {
+      if (building.position.x + building.size.x < 0) {
+        building.removeFromParent();
+        return true;
+      }
+      return false;
+    });
+    
+    // Verificar colisões
+    checkCollisions();
+    
+    // Verificar pontuação
+    updateScore();
+  }
+  
+  void spawnBuilding() {
+    final double minGapY = 100;
+    final double maxGapY = size.y - buildingGap - 100;
+    final double gapY = math.Random().nextDouble() * (maxGapY - minGapY) + minGapY;
+    
+    final building = Building(
+      gapY: gapY,
+      gapSize: buildingGap,
+      gameSpeed: gameSpeed,
+    );
+    
+    building.position = Vector2(size.x, 0);
+    buildings.add(building);
+    add(building);
+  }
+  
+  void checkCollisions() {
+    final playerRect = Rect.fromLTWH(
+      player.position.x, 
+      player.position.y, 
+      player.size.x, 
+      player.size.y
+    );
+    for (final building in buildings) {
+      if (playerRect.overlaps(building.getTopRect()) ||
+          playerRect.overlaps(building.getBottomRect())) {
+        gameOver();
+        return;
+      }
+    }
+    
+    // Verificar se saiu da tela
+    if (player.position.y < 0 || player.position.y > size.y) {
+      gameOver();
+    }
+  }
+  
+  void updateScore() {
+    for (final building in buildings) {
+      if (!building.scored && 
+          building.position.x + building.size.x < player.position.x) {
+        building.scored = true;
+        score++;
+        scoreText.text = 'Pontuação: $score';
+        
+        // Aumentar velocidade gradualmente
+        if (score % 5 == 0) {
+          gameSpeed += 10;
+        }
+      }
+    }
+  }
+    void showMenu() {
+    gameState = GameState.menu;
+  titleText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(255, 255, 255, 255), 
+      fontSize: 24,
+    ),
+  );
+  instructionText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(255, 255, 255, 255), 
+      fontSize:18,
+    ),
+  );
+  scoreText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(255, 255, 255, 255), 
+      fontSize: 18,
+    ),
+  );
+  }
+  
+void hideMenu() {
+  titleText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(0, 255, 255, 255), 
+      fontSize: 24,
+    ),
+  );
+  instructionText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(0, 255, 255, 255), 
+      fontSize: 18,
+    ),
+  );
+  scoreText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(255, 255, 255, 255), 
+      fontSize: 18,
+    ),
+  );
+}
+
+
+  void startGame() {
+    gameState = GameState.playing;
+    hideMenu();
+    resetGame();
+  }
+  
+  void gameOver() {
+    gameState = GameState.gameOver;
+  
+    instructionText.text = 'GAME OVER!\n Pontuação: $score\n\nToque para jogar novamente';
+  titleText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(255, 255, 255, 255), 
+      fontSize: 24,
+    ),
+  );
+  instructionText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(255, 255, 255, 255), 
+      fontSize:18,
+    ),
+  );
+  scoreText.textRenderer = TextPaint(
+    style: TextStyle(
+      color: const Color.fromARGB(0, 255, 255, 255), 
+      fontSize: 18,
+    ),
+  );
+  }
+  
+
+  void resetGame() {
+    score = 0;
+    gameSpeed = 120.0;
+    buildingSpawnTimer = 0;
+    scoreText.text = 'Pontuação: 0';
+    
+    // Remover todos os prédios
+    for (final building in buildings) {
+      building.removeFromParent();
+    }
+    buildings.clear();
+    
+    // Resetar jogador
+    player.reset();
+  }
+  
+  
+  void jump() {
+    if (gameState == GameState.playing) {
+      player.jump();
+    } else if (gameState == GameState.menu){
+      startGame();
+    } else if (gameState == GameState.gameOver) {
+      showMenu();
+    }
+  }
+  
+  @override
+  bool onTapDown(TapDownInfo info) {
+    jump();
+    return true;
+  }
+}
