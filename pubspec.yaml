@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
   flame: ^1.15.0
   cupertino_icons: ^1.0.8
-  audioplayers: ^5.1.0
+  flame_audio: ^2.1.1
 
 dev_dependencies:
   flutter_test:
@@ -26,6 +26,12 @@ dev_dependencies:
 flutter:
   assets: 
     - assets/images/
-    - assets/audio/
+    - assets/audio/theme_game.wav
 
-  uses-material-design: true
+
+flutter_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/app_icon.png"
+  #adaptive_icon_background: "#ffffff"  # cor de fundo (opcional)
+  adaptive_icon_foreground: "assets/images/app_icon.png"

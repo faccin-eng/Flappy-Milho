@@ -4,7 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
-
+import 'package:flame_audio/flame_audio.dart';
 import 'components/corn_player.dart';
 import 'components/building.dart';
 import 'components/background.dart';
@@ -29,6 +29,10 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+      await FlameAudio.audioCache.load('theme_game.wav');
+      FlameAudio.bgm.initialize();
+      FlameAudio.bgm.play('theme_game.wav', volume: 0.5); 
     
     // Configurar câmera
     camera.viewfinder.visibleGameSize = size;
