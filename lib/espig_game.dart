@@ -66,7 +66,7 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
     
     // Título do menu
     titleText = TextComponent(
-      text: '🌽 FLAPPY Milho\nEspigão d\'Oeste',
+      text: '🌽 FLAPPY Milho\nEspigão d\'Oeste 🌽',
       position: Vector2(size.x / 2, size.y / 2 - 100),
       anchor: Anchor.center,
       textRenderer: TextPaint(
@@ -128,7 +128,7 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
     
     // Remover prédios fora da tela
     buildings.removeWhere((building) {
-      if (building.position.x + building.size.x < 0) {
+      if (building.x + building.width < 0) {
         building.removeFromParent();
         return true;
       }
@@ -147,15 +147,14 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
     final double maxGapY = size.y - buildingGap - 100;
     final double gapY = math.Random().nextDouble() * (maxGapY - minGapY) + minGapY;
     
-    final building = Building(
+    final newBuilding = Building(
       gapY: gapY,
       gapSize: buildingGap,
       gameSpeed: gameSpeed,
     );
     
-    building.position = Vector2(size.x, 0);
-    buildings.add(building);
-    add(building);
+    buildings.add(newBuilding);
+    add(newBuilding);
   }
   
   void checkCollisions() {
@@ -182,7 +181,7 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
   void updateScore() {
     for (final building in buildings) {
       if (!building.scored && 
-          building.position.x + building.size.x < player.position.x) {
+          building.x + building.width < player.position.x) {
         building.scored = true;
         score++;
         scoreText.text = 'Pontuação: $score';
