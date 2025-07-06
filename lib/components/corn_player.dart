@@ -5,9 +5,10 @@ import '../espig_game.dart';
 
 class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame> {
   late double velocity;
-  final double gravity = 800.0; // Gravidade mais suave
+  final double gravity = 900.0; 
   final double jumpForce = -350.0; // Pulo mais suave
   final double maxVelocity = 300.0;
+  bool isGameOver = false;
   
   @override
   Future<void> onLoad() async {
@@ -18,7 +19,9 @@ class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame>
   
   @override
   void update(double dt) {
+
     super.update(dt);
+    if (isGameOver) return;
     
     // Aplicar gravidade
     velocity += gravity * dt;

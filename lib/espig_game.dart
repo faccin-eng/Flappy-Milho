@@ -66,7 +66,7 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
     
     // Título do menu
     titleText = TextComponent(
-      text: '🌽 FLAPPY Milho\nEspigão d\'Oeste 🌽',
+      text: '🌽 FLAPPY ESPIGA 🌽',
       position: Vector2(size.x / 2, size.y / 2 - 100),
       anchor: Anchor.center,
       textRenderer: TextPaint(
@@ -87,7 +87,7 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
     add(titleText);
 
         instructionText = TextComponent(
-      text: 'Toque para começar!\nToque para voar e evite os prédios',
+      text: 'Toque para começar!\nToque para voar entre o portal pomerano',
       position: Vector2(size.x / 2, size.y / 2 + 50),
       anchor: Anchor.center,
       textRenderer: TextPaint(
@@ -115,11 +115,13 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
     
     if (gameState == GameState.playing) {
       updateGame(dt);
+          
     }
   }
   
   void updateGame(double dt) {
     // Spawnar prédios
+    player.isGameOver = false;
     buildingSpawnTimer += dt;
     if (buildingSpawnTimer >= buildingSpawnInterval) {
       spawnBuilding();
@@ -245,7 +247,7 @@ void hideMenu() {
   
   void gameOver() {
     gameState = GameState.gameOver;
-  
+    player.isGameOver = true;
     instructionText.text = 'GAME OVER!\n Pontuação: $score\n\nToque para jogar novamente';
   titleText.textRenderer = TextPaint(
     style: TextStyle(

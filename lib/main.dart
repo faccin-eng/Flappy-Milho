@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flappy Milho - Espigão d\'Oeste',
+      title: 'Flappy Espiga',
       theme: ThemeData(primarySwatch: Colors.green),
       home: GameScreen(),
       debugShowCheckedModeBanner: false,
