@@ -154,7 +154,7 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
       gapSize: buildingGap,
       gameSpeed: gameSpeed,
     );
-    
+    newBuilding.position = Vector2(size.x, 0);
     buildings.add(newBuilding);
     add(newBuilding);
   }

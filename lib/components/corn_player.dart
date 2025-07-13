@@ -6,7 +6,7 @@ import '../espig_game.dart';
 class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame> {
   late double velocity;
   final double gravity = 900.0; 
-  final double jumpForce = -350.0; // Pulo mais suave
+  final double jumpForce = -400.0; // Pulo mais suave
   final double maxVelocity = 300.0;
   bool isGameOver = false;
   
@@ -34,48 +34,54 @@ class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame>
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    
-    // Rotação baseada na velocidade
-    final rotation = (velocity / maxVelocity) * 0.4;
-    
+        
     canvas.save();
     canvas.translate(size.x / 2, size.y / 2);
-    canvas.rotate(rotation);
+    canvas.rotate((velocity / maxVelocity) *0.4);
     
-    // Desenhar espiga mais fina e detalhada
-    final cornPaint = Paint()..color = const Color(0xFFFFD700);
-    final kernelPaint = Paint()..color = const Color(0xFFFFA500);
-    final leafPaint = Paint()..color = const Color(0xFF32CD32);
+    final pixelSize = 3.0; 
+    final pixelPaint = Paint()..color = Colors.black;
     
-    // Corpo da espiga (mais fino)
-    final cornRect = Rect.fromCenter(
-      center: Offset.zero,
-      width: size.x * 0.7, // Mais fino
-      height: size.y * 0.8,
+    void drawPixel (int x, int y, Color color) {
+      final paint = Paint()..color = color;
+    canvas.drawRect(
+      Rect.fromLTWH(
+      (x-8) * pixelSize,
+      (y-8) * pixelSize,
+      pixelSize,
+      pixelSize,
+      ),
+      paint,
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(cornRect, const Radius.circular(8)),
-      cornPaint,
-    );
+    }
+      // Mapeamento manual de "pixels"
+  final List<List<Color?>> pixels = [
+    // Cada linha representa 1 linha de pixels da imagem (de cima pra baixo)
+    // [null, null, null, null, Colors.black, Colors.black, null, null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, Colors.black, Colors.black, null, null, null, null, null, null, null, null, null, null],
+    [null, null, null, Colors.black, Color(0xFFFFD700), Color(0xFFFFD700), Colors.black, null, null, null, null, null, null, null, null, null],
+    [null, null, Colors.black, Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Colors.black, null, null, null, null, null, null, null, null],
+    [null, Colors.black, Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700), Color(0xFFFFD700), Colors.black, null, null, null, null, null, null, null],
+    [null, Colors.black, Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Colors.black, null, null, null, null, null, null, null],
+    [null, Colors.black, Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700), Color(0xFFFFD700), Colors.black, null, null, null, null, null, null, null],
+    [null, Colors.black, Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Colors.black, null, null, null, null, null, null, null],
+    [null, Colors.black, Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700), Color(0xFFFFD700), Colors.black, null, null, null, null, null, null, null],
+    [null, Colors.black, Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Colors.black, null, null, null, null, null, null, null],
+    [null, Colors.black, Color(0xFF32CD32), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFFFFD700), Color(0xFF32CD32), Colors.black, null, null, null, null, null, null, null],
+    [null, null, Colors.black, Color(0xFF32CD32), Color(0xFF32CD32), Color(0xFFFFD700), Color(0xFF32CD32), Colors.black, null, null, null, null, null, null, null, null],
+    [null, null, null, Colors.black, Color(0xFF32CD32), Color(0xFF32CD32), Colors.black, null, null, null, null, null, null, null, null, null],
+    [null, null, Colors.black, Color(0xFF32CD32), Color(0xFF32CD32), Color(0xFF32CD32), Color(0xFF32CD32), Colors.black, null, null, null, null, null, null, null, null],
+  ];
     
-    // Grãos de milho em fileiras
-    for (int row = 0; row < 8; row++) {
-      for (int col = 0; col < 3; col++) {
-        final x = -size.x * 0.25 + col * 8.0;
-        final y = -size.y * 0.3 + row * 5.0;
-        canvas.drawCircle(Offset(x, y), 2.5, kernelPaint);
+    canvas.restore();
+    for (int y = 0; y < pixels.length; y++) {
+      for (int x = 0; x < pixels[y].length; x++) {
+        final color = pixels[y] [x];
+        if (color != null) {
+          drawPixel(x, y, color);
+        }
       }
     }
-    
-    // Folhas no topo
-    final leafPath = Path();
-    leafPath.moveTo(-size.x * 0.2, -size.y * 0.4);
-    leafPath.quadraticBezierTo(-size.x * 0.4, -size.y * 0.6, -size.x * 0.1, -size.y * 0.7);
-    leafPath.quadraticBezierTo(size.x * 0.1, -size.y * 0.7, size.x * 0.4, -size.y * 0.6);
-    leafPath.quadraticBezierTo(size.x * 0.2, -size.y * 0.4, 0, -size.y * 0.4);
-    leafPath.close();
-    canvas.drawPath(leafPath, leafPaint);
-    
     canvas.restore();
   }
   

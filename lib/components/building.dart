@@ -1,17 +1,13 @@
-import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../espig_game.dart';
 
-class Building extends Component with HasGameReference<FlappyCornGame> {
+class Building extends PositionComponent with HasGameReference<FlappyCornGame> {
   final double gapY;
   final double gapSize;
   final double gameSpeed;
   bool scored = false;
   
-   SpriteComponent top = SpriteComponent();
-   SpriteComponent bottom = SpriteComponent();
-
   Building({
     required this.gapY,
     required this.gapSize,
@@ -20,48 +16,87 @@ class Building extends Component with HasGameReference<FlappyCornGame> {
   
   @override
   Future<void> onLoad() async {
-    final topSprite = await game.loadSprite('building_top.png');
-    final bottomSprite = await game.loadSprite('building_bottom.png');
-   
-    final buildingWidth = 80.0;
-    final topHeight = gapY;
-    final bottomHeight = game.size.y - gapY - gapSize;
-
-    top = SpriteComponent(
-      sprite: topSprite,
-      size: Vector2(buildingWidth, topHeight),
-      position: Vector2(game.size.x, 0),
-      anchor: Anchor.topLeft,
-    )..add(RectangleHitbox());
-
-    bottom = SpriteComponent(
-      sprite: bottomSprite,
-      size: Vector2(buildingWidth, bottomHeight),
-      position: Vector2(game.size.x, gapY + gapSize),
-      anchor: Anchor.topLeft,
-      )..add(RectangleHitbox());
-
-
-    addAll([top, bottom]);
+    size = Vector2(80, game.size.y);
   }
   
   @override
   void update(double dt) {
     super.update(dt);
-    final dx=gameSpeed * dt;
-    top.position.x -= dx;
-    bottom.position.x -= dx;
+    position.x -= gameSpeed * dt;
   }
   
-  double get x => top.position.x;
-  double get width => top.size.x;
-  bool get isOffScreen => x + width <0 ;
+  @override
+void render(Canvas canvas) {
+  const pixelSize = 4.0; // Tamanho do "pixel"
+  final colors = {
+    0: null, // transparente
+    1: Paint()..color = const Color(0xFFF3F1E1), // parede
+    2: Paint()..color = const Color(0xFF2C91A7), // janelas/faixas
+    3: Paint()..color = const Color(0xFFF5803C), // telhado
+  };
 
-  Rect getTopRect() => top.toRect();
-  Rect getBottomRect() => bottom.toRect();
-  
+  // Matriz simplificada da torre (32x32)
+  const towerPixels = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,3,3,1,1,1,1,3,3,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,3,3,1,1,1,1,1,1,1,1,3,3,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,3,3,1,1,1,1,1,1,1,1,1,1,1,1,3,3,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,3,3,1,1,2,2,1,1,2,2,1,1,2,2,1,1,1,1,3,3,0,0,0,0,0,0],
+    [0,0,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,0,0,0,0],
+    [0,0,3,3,1,1,2,2,1,1,2,2,1,1,2,2,1,1,2,2,1,1,2,2,1,1,3,3,0,0,0,0],
+    [0,0,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,0,0,0,0],
+    [0,0,3,3,1,1,2,2,1,1,2,2,1,1,2,2,1,1,2,2,1,1,2,2,1,1,3,3,0,0,0,0],
+    [0,0,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,3,0,0,0,0],
+    // (adicione mais linhas se quiser a torre mais longa)
+  ];
+
+  // Desenha a torre no prédio superior
+  for (int y = 0; y < towerPixels.length; y++) {
+    for (int x = 0; x < towerPixels[y].length; x++) {
+      final colorIndex = towerPixels[y][x];
+      final paint = colors[colorIndex];
+      if (paint != null) {
+        canvas.drawRect(
+          Rect.fromLTWH(x * pixelSize, y * pixelSize, pixelSize, pixelSize),
+          paint,
+        );
+      }
+    }
   }
 
+  // Espelha para torre inferior
+  for (int y = 0; y < towerPixels.length; y++) {
+    for (int x = 0; x < towerPixels[y].length; x++) {
+      final colorIndex = towerPixels[y][x];
+      final paint = colors[colorIndex];
+      if (paint != null) {
+        final mirroredY = size.y - (towerPixels.length - y) * pixelSize;
+        canvas.drawRect(
+          Rect.fromLTWH(x * pixelSize, mirroredY, pixelSize, pixelSize),
+          paint,
+        );
+      }
+    }
+  }
+}
+
+  
+  Rect getTopRect() {
+    return Rect.fromLTWH(position.x, position.y, size.x, gapY);
+  }
+  
+  Rect getBottomRect() {
+    return Rect.fromLTWH(
+      position.x,
+      position.y + gapY + gapSize,
+      size.x,
+      size.y - gapY - gapSize,
+    );
+  }
+}
+
+
+  // Prédio 3rd stage 
   // @override
   // void render(Canvas canvas) {
   //   final buildingPaint = Paint()..color = const Color(0xFF654321);
@@ -100,4 +135,3 @@ class Building extends Component with HasGameReference<FlappyCornGame> {
   //     }
   //   }
   // }
-  
