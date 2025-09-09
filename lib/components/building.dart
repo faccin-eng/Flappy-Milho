@@ -40,11 +40,11 @@ class Building extends PositionComponent with HasGameReference<FlappyCornGame> {
     final availableSpaceTop = gapY;
     final availableSpaceBottom = size.y - gapY - gapSize;
   //altura
-    topTowerHeight = (availableSpaceTop * 0.3).clamp(8, 120).toInt(); // 30% do espaço disponível
-    bottomTowerHeight = (availableSpaceBottom * 0.3).clamp(8, 120).toInt();
+    topTowerHeight = (availableSpaceTop * 0.3).clamp(20, 120).toInt(); // 30% do espaço disponível
+    bottomTowerHeight = (availableSpaceBottom * 0.3).clamp(20, 120).toInt();
   //gera torres
-    topTowerPixels = _generateTowerPixels(towerWidth, topTowerHeight);
-    bottomTowerPixels = _generateTowerPixels(towerWidth, bottomTowerHeight);
+    topTowerPixels = _generateTowerPixels(towerWidth, topTowerHeight, true);
+    bottomTowerPixels = _generateTowerPixels(towerWidth, bottomTowerHeight, false);
   }
 
   Future<void> _cacheImage() async{
@@ -60,36 +60,94 @@ class Building extends PositionComponent with HasGameReference<FlappyCornGame> {
       imageReady = true;
   }
 
-
-
-  List<List<int>> _generateTowerPixels(int width, int height){
-    final random = math.Random();
-    List<List<int>> pixels = [];
-
-    for (int y = 0; y < height; y++){
+List<List<int>> _generateTowerPixels(int width, int height, bool isTopTower) {
+  List<List<int>> pixels = [];
+  
+  if (isTopTower) {
+    // TORRE SUPERIOR - Corpo em cima, telhado EMBAIXO (apontando para o gap)
+    
+    // Corpo da torre primeiro
+    for (int y = 0; y < height - 6; y++) {
       List<int> row = [];
       for (int x = 0; x < width; x++) {
-        int pixel; 
-
-        if (y == 0 || y == height - 1) {
-          pixel = (x >= 2 && x < width -2) ? 3 : 0 ; //telhado laranja
-        } else if ( x == 0 || x == width -1){
-          pixel = 0; //bordas transparentes
-        } else if (x == 1 || x == width -2) {
-          pixel = 1;
-        } else {
-          if (y % 3 == 1 && x % 4 == 2){
-            pixel = 2; //janela azul
-          } else {
-            pixel = 1; //parede bege
-          }
+        if (x == 0 || x == width - 1) {
+          row.add(1); // Bordas
         }
-        row.add(pixel);
+        else if (y % 8 >= 2 && y % 8 <= 5 && x >= 4 && x < width - 4) {
+          row.add(2); // Janela azul
+        }
+        else {
+          row.add(1); // Parede
+        }
       }
       pixels.add(row);
     }
-    return pixels;
+    
+    // Base do telhado
+    List<int> roofBase = [];
+    for (int x = 0; x < width; x++) {
+      roofBase.add(3);
+    }
+    pixels.add(roofBase);
+    
+    // Telhado triangular APONTANDO PARA BAIXO (para o gap)
+    for (int y = 0; y < 5; y++) {
+      List<int> row = [];
+      int margin = y;
+      for (int x = 0; x < width; x++) {
+        if (x >= margin && x < width - margin) {
+          row.add(3); // Telhado
+        } else {
+          row.add(0);
+        }
+      }
+      pixels.add(row);
+    }
+    
+  } else {
+    // TORRE INFERIOR - Telhado EM CIMA (apontando para o gap), corpo embaixo
+    
+    // Telhado triangular APONTANDO PARA CIMA (para o gap)
+    for (int y = 0; y < 5; y++) {
+      List<int> row = [];
+      int margin = 5 - y - 1;
+      for (int x = 0; x < width; x++) {
+        if (x >= margin && x < width - margin) {
+          row.add(3); // Telhado
+        } else {
+          row.add(0);
+        }
+      }
+      pixels.add(row);
+    }
+    
+    // Base do telhado
+    List<int> roofBase = [];
+    for (int x = 0; x < width; x++) {
+      roofBase.add(3);
+    }
+    pixels.add(roofBase);
+    
+    // Corpo da torre
+    for (int y = 6; y < height; y++) {
+      List<int> row = [];
+      for (int x = 0; x < width; x++) {
+        if (x == 0 || x == width - 1) {
+          row.add(1); // Bordas
+        }
+        else if (y % 8 >= 2 && y % 8 <= 5 && x >= 4 && x < width - 4) {
+          row.add(2); // Janela azul
+        }
+        else {
+          row.add(1); // Parede
+        }
+      }
+      pixels.add(row);
+    }
   }
+  
+  return pixels;
+}
   
   @override
   void update(double dt) {
@@ -102,9 +160,9 @@ void _renderTowers(Canvas canvas) {
   const pixelSize = 4.0; 
   final colors = {
     0: null, 
-    1: Paint()..color = const Color(0xFFF3F1E1), // parede
-    2: Paint()..color = const Color.fromARGB(255, 44, 83, 167), // janelas/faixas
-    3: Paint()..color = const Color(0xFFF5803C), // telhado
+    1: Paint()..color = const Color(0xFFF5F5DC), // parede
+    2: Paint()..color = const Color(0xFF4169E1), // janelas/faixas
+    3: Paint()..color = const Color(0xFFD2691E), // telhado
   };
 
 
