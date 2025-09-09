@@ -23,7 +23,8 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
   int score = 0;
   double gameSpeed = 120.0; // Pixels por segundo
   double buildingSpawnTimer = 0;
-  final double buildingSpawnInterval = 1.6; // Segundos entre prédios
+  double buildingSpawnInterval = 2.0;
+  double totalGameTime = 0;
   final double buildingGap = 280.0; // Abertura maior para facilitar
   
   @override
@@ -119,9 +120,22 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
     }
   }
   
+  void updateDifficulty(){
+    if (totalGameTime >= 200){
+      buildingSpawnInterval = 1.6;
+    } else if (totalGameTime >= 90) {
+      buildingSpawnInterval = 1.7;
+    } else if (totalGameTime >= 30) {
+      buildingSpawnInterval = 1.8;
+    }
+  }
+
   void updateGame(double dt) {
-    // Spawnar prédios
     player.isGameOver = false;
+
+    totalGameTime += dt;
+    updateDifficulty();
+
     buildingSpawnTimer += dt;
     if (buildingSpawnTimer >= buildingSpawnInterval) {
       spawnBuilding();
@@ -278,6 +292,7 @@ void hideMenu() {
     score = 0;
     gameSpeed = 120.0;
     buildingSpawnTimer = 0;
+    buildingSpawnInterval = 2.0;
     scoreText.text = 'Pontuação: 0';
     
     // Remover todos os prédios
