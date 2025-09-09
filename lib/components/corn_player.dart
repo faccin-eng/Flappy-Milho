@@ -12,7 +12,8 @@ class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame>
   
   @override
   Future<void> onLoad() async {
-    size = Vector2(25, 45); // Espiga mais fina
+    size = Vector2(25, 40); // Espiga mais fina
+    anchor = Anchor.center;
     position = Vector2(100, game.size.y / 2);
     velocity = 0;
   }
@@ -39,21 +40,7 @@ class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame>
     canvas.translate(size.x / 2, size.y / 2);
     canvas.rotate((velocity / maxVelocity) *0.4);
     
-    final pixelSize = 3.0; 
-    final pixelPaint = Paint()..color = Colors.black;
-    
-    void drawPixel (int x, int y, Color color) {
-      final paint = Paint()..color = color;
-    canvas.drawRect(
-      Rect.fromLTWH(
-      (x-8) * pixelSize,
-      (y-8) * pixelSize,
-      pixelSize,
-      pixelSize,
-      ),
-      paint,
-    );
-    }
+
       // Mapeamento manual de "pixels"
   final List<List<Color?>> pixels = [
     // Cada linha representa 1 linha de pixels da imagem (de cima pra baixo)
@@ -72,8 +59,24 @@ class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame>
     [null, null, null, Colors.black, Color(0xFF32CD32), Color(0xFF32CD32), Colors.black, null, null, null, null, null, null, null, null, null],
     [null, null, Colors.black, Color(0xFF32CD32), Color(0xFF32CD32), Color(0xFF32CD32), Color(0xFF32CD32), Colors.black, null, null, null, null, null, null, null, null],
   ];
+
+    final pixelSize = 3.0;
+    final offsetX = pixels[0].length / 2; 
+    final offsetY = pixels.length / 2;
     
-    canvas.restore();
+    void drawPixel (int x, int y, Color color) {
+      final paint = Paint()..color = color;
+    canvas.drawRect(
+      Rect.fromLTWH(
+      (x- offsetX) * pixelSize,
+      (y- offsetY) * pixelSize,
+      pixelSize,
+      pixelSize,
+      ),
+      paint,
+    );
+    }
+    
     for (int y = 0; y < pixels.length; y++) {
       for (int x = 0; x < pixels[y].length; x++) {
         final color = pixels[y] [x];
@@ -82,6 +85,7 @@ class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame>
         }
       }
     }
+
     canvas.restore();
   }
   
@@ -95,6 +99,10 @@ class CornPlayer extends PositionComponent with HasGameReference<FlappyCornGame>
   }
   
   Rect toRect() {
-    return Rect.fromLTWH(position.x, position.y, size.x, size.y);
+    return Rect.fromLTWH(
+      position.x - size.x /2,
+      position.y - size.y / 2,
+      size.x,
+      size.y);
   }
 }

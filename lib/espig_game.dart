@@ -161,21 +161,23 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
   
   void checkCollisions() {
     final playerRect = Rect.fromLTWH(
-      player.position.x, 
-      player.position.y, 
+      player.position.x - player.size.x / 2, 
+      player.position.y - player.size.y / 2, 
       player.size.x, 
       player.size.y
     );
+
     for (final building in buildings) {
-      if (playerRect.overlaps(building.getTopRect()) ||
-          playerRect.overlaps(building.getBottomRect())) {
+      final topRect = building.getTopRect().translate(building.position.x, building.position.y);
+      final bottomRect = building.getBottomRect().translate(building.position.x, building.position.y);
+
+
+      if (playerRect.overlaps(topRect) || playerRect.overlaps(bottomRect)) {
         gameOver();
         return;
       }
     }
-    
-    // Verificar se saiu da tela
-    if (player.position.y < 0 || player.position.y > size.y) {
+    if (player.position.y - player.size.y/2 < 0 || player.position.y + player.size.y/2 > size.y){
       gameOver();
     }
   }

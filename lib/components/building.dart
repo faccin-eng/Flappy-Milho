@@ -140,17 +140,18 @@ void _renderTowers(Canvas canvas) {
  
   Rect getTopRect() {
     return Rect.fromLTWH(
-    position.x,
-    gapY - topTowerHeight * 4.0,
+    0,
+    0,
     towerWidth * 4.0,
     topTowerHeight * 4.0
     );
   }
   
   Rect getBottomRect() {
+    final bottomY = size.y - (bottomTowerHeight * 4.0);
     return Rect.fromLTWH(
-      position.x,
-      gapY + gapSize,
+      0,
+      bottomY,
       towerWidth * 4.0,
       bottomTowerHeight * 4.0
     );
@@ -160,6 +161,6 @@ void _renderTowers(Canvas canvas) {
   void render(Canvas canvas){
     if (!imageReady) return;
     canvas.drawImage(cachedImage, Offset.zero, Paint());
-    
+
   }
 }
