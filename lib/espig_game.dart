@@ -23,7 +23,7 @@ class FlappyCornGame extends FlameGame with HasKeyboardHandlerComponents, TapDet
   int score = 0;
   double gameSpeed = 120.0; // Pixels por segundo
   double buildingSpawnTimer = 0;
-  final double buildingSpawnInterval = 2.5; // Segundos entre prédios
+  final double buildingSpawnInterval = 1.6; // Segundos entre prédios
   final double buildingGap = 280.0; // Abertura maior para facilitar
   
   @override
@@ -245,6 +245,8 @@ void hideMenu() {
     gameState = GameState.playing;
     hideMenu();
     resetGame();
+
+    spawnBuilding();
   }
   
   void gameOver() {
